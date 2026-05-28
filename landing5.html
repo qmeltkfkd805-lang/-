@@ -1,6 +1,68 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <script>
+(function() {
+    // === 설정 값 ===
+    const MAX_CLICKS = 3;          // 허용할 최대 클릭 횟수
+    const RESET_TIME = 24 * 60 * 60 * 1000; // 클릭 카운트 리셋 주기 (현재 24시간)
+    
+    // 로컬 스토리지에서 기존 클릭 데이터 가져오기
+    let adClickData = JSON.parse(localStorage.getItem('_ad_click_tracker')) || { count: 0, date: Date.now() };
+    
+    // 24시간이 지났으면 카운트 초기화
+    if (Date.now() - adClickData.date > RESET_TIME) {
+        adClickData = { count: 0, date: Date.now() };
+        localStorage.setItem('_ad_click_tracker', JSON.stringify(adClickData));
+    }
+
+    // 만약 이미 최대 클릭 수를 넘긴 사용자라면 처음부터 광고를 숨김
+    if (adClickData.count >= MAX_CLICKS) {
+        hideAllAds();
+    }
+
+    // 광고 숨기기 함수
+    function hideAllAds() {
+        const adElements = document.querySelectorAll('.adsbygoogle');
+        adElements.forEach(ad => {
+            ad.style.display = 'none !important';
+            // 부모 태그까지 감추고 싶다면 아래 주석 해제
+            // ad.parentElement.style.display = 'none';
+        });
+        console.warn('[경고] 무효 트래픽 방지를 위해 광고 게재를 중단합니다.');
+    }
+
+    // iframe(광고) 클릭 감지 로직
+    let isOverAd = false;
+
+    // 마우스가 애드센스 광고 영역에 들어왔는지 감지
+    document.addEventListener('mouseover', function(e) {
+        if (e.target.closest('.adsbygoogle') || e.target.tagName === 'IFRAME') {
+            isOverAd = true;
+        } else {
+            isOverAd = false;
+        }
+    });
+
+    // 브라우저 포커스가 iframe으로 넘어가는 순간(즉, 광고를 클릭한 순간)을 캐치
+    window.addEventListener('blur', function() {
+        if (isOverAd) {
+            adClickData.count++;
+            adClickData.date = Date.now();
+            localStorage.setItem('_ad_click_tracker', JSON.stringify(adClickData));
+
+            if (adClickData.count >= MAX_CLICKS) {
+                hideAllAds();
+            }
+            
+            // 포커스 상태 초기화
+            isOverAd = false;
+            // 다른 곳을 포커스 시켜서 연속 클릭 방지
+            window.focus();
+        }
+    });
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>숲나들e 수락휴 예약 꿀팁 2026 - 선착순 성공률 높이는 방법</title>
